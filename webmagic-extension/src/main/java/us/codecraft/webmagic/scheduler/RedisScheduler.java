@@ -20,7 +20,7 @@ import us.codecraft.webmagic.scheduler.component.DuplicateRemover;
  */
 public class RedisScheduler extends DuplicateRemovedScheduler implements MonitorableScheduler, DuplicateRemover {
 
-    protected JedisPool pool;
+    public JedisPool pool;
 
     private static final String QUEUE_PREFIX = "queue_";
 

@@ -22,7 +22,7 @@ public class HtmlNode extends AbstractSelectable {
         elements = null;
     }
 
-    protected List<Element> getElements() {
+    public List<Element> getElements() {
         return elements;
     }
 
@@ -46,7 +46,7 @@ public class HtmlNode extends AbstractSelectable {
     @Override
     public Selectable selectList(Selector selector) {
         if (selector instanceof BaseElementSelector) {
-           return selectElements((BaseElementSelector) selector);
+            return selectElements((BaseElementSelector) selector);
         }
         return selectList(selector, getSourceTexts());
     }

@@ -36,6 +36,10 @@ public class Site {
 
     private int retrySleepTime = 1000;
 
+    private int notAcceptHttpCodeRetryTimes = 0;
+
+    private int notAcceptHttpCodeRetrySleepTime = 200;
+
     private int timeOut = 5000;
 
     private static final Set<Integer> DEFAULT_STATUS_CODE_SET = new HashSet<Integer>();
@@ -97,6 +101,24 @@ public class Site {
      */
     public Site setUserAgent(String userAgent) {
         this.userAgent = userAgent;
+        return this;
+    }
+
+    public int getNotAcceptHttpCodeRetryTimes() {
+        return notAcceptHttpCodeRetryTimes;
+    }
+
+    public Site setNotAcceptHttpCodeRetryTimes(int notAcceptHttpCodeRetryTimes) {
+        this.notAcceptHttpCodeRetryTimes = notAcceptHttpCodeRetryTimes;
+        return this;
+    }
+
+    public int getNotAcceptHttpCodeRetrySleepTime() {
+        return notAcceptHttpCodeRetrySleepTime;
+    }
+
+    public Site setNotAcceptHttpCodeRetrySleepTime(int notAcceptHttpCodeRetrySleepTime) {
+        this.notAcceptHttpCodeRetrySleepTime = notAcceptHttpCodeRetrySleepTime;
         return this;
     }
 

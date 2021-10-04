@@ -102,7 +102,8 @@ public class HttpClientDownloader extends AbstractDownloader {
 
     @Override
     public void setThread(int thread) {
-        httpClientGenerator.setPoolSize(thread);
+//        httpClientGenerator.setPoolSize(thread);
+        httpClientGenerator.setPoolSize(thread*2); // 因为在process(Page page)使用httpclient下载文件，会占用链接
     }
 
     protected Page handleResponse(Request request, String charset, HttpResponse httpResponse, Task task) throws IOException {

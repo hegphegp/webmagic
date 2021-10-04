@@ -21,6 +21,8 @@ public class Request implements Serializable {
 
     public static final String CYCLE_TRIED_TIMES = "_cycle_tried_times";
 
+    public static final String NOT_ACCEPT_HTTP_CODE_TRIED_TIMES = "_not_accept_code_tried_times";
+
     private String url;
 
     private String method;

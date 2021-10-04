@@ -60,6 +60,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Spider implements Runnable, Task {
 
+    public HtmlDownloadRecord htmlDownloadRecord;
+
     protected Downloader downloader;
 
     protected List<Pipeline> pipelines = new ArrayList<Pipeline>();
@@ -197,6 +199,11 @@ public class Spider implements Runnable, Task {
                 this.scheduler.push(request, this);
             }
         }
+        return this;
+    }
+
+    public us.codecraft.webmagic.Spider setHtmlDownloadRecord(HtmlDownloadRecord htmlDownloadRecord) {
+        this.htmlDownloadRecord = htmlDownloadRecord;
         return this;
     }
 
@@ -426,6 +433,9 @@ public class Spider implements Runnable, Task {
     }
 
     private void onDownloadSuccess(Request request, Page page) {
+        if (htmlDownloadRecord!=null) {
+            htmlDownloadRecord.record(site, page);
+        }
         if (site.getAcceptStatCode().contains(page.getStatusCode())){
             pageProcessor.process(page);
             extractAndAddRequests(page, spawnUrl);
@@ -434,15 +444,39 @@ public class Spider implements Runnable, Task {
                     pipeline.process(page.getResultItems(), this);
                 }
             }
+            sleep(site.getSleepTime());
         } else {
             logger.info("page status code error, page {} , code: {}", request.getUrl(), page.getStatusCode());
+            // 记录非接受HttpCode处理的逻辑
+            onNotAcceptHttpCodeRetry(request, page);
         }
-        sleep(site.getSleepTime());
-        return;
+    }
+
+    public void onNotAcceptHttpCodeRetry(Request request, Page page) {
+        if (htmlDownloadRecord!=null) {
+            htmlDownloadRecord.notAcceptHttpCodeRecord(site, page);
+        }
+        if (site.getNotAcceptHttpCodeRetryTimes() == 0) { // 设置重试
+            sleep(site.getSleepTime());
+        } else {
+            Object notAcceptCodeTriedTimesObject = request.getExtra(Request.NOT_ACCEPT_HTTP_CODE_TRIED_TIMES);
+            if (notAcceptCodeTriedTimesObject == null) {
+                addRequest(SerializationUtils.clone(request).setPriority(0).putExtra(Request.NOT_ACCEPT_HTTP_CODE_TRIED_TIMES, 1));
+            } else {
+                int notAcceptCodeTriedTimes = (Integer) notAcceptCodeTriedTimesObject;
+                notAcceptCodeTriedTimes++;
+                if (notAcceptCodeTriedTimes < site.getNotAcceptHttpCodeRetryTimes()) {
+                    addRequest(SerializationUtils.clone(request).setPriority(0).putExtra(Request.NOT_ACCEPT_HTTP_CODE_TRIED_TIMES, notAcceptCodeTriedTimes));
+                } else {
+                    htmlDownloadRecord.notAcceptHttpCodeUrlRecord(site, request);
+                }
+            }
+            sleep(site.getNotAcceptHttpCodeRetrySleepTime());
+        }
     }
 
     private void onDownloaderFail(Request request) {
-        if (site.getCycleRetryTimes() == 0) {
+        if (site.getCycleRetryTimes() == 0) { // 设置重试
             sleep(site.getSleepTime());
         } else {
             // for cycle retry
@@ -464,7 +498,11 @@ public class Spider implements Runnable, Task {
         sleep(site.getRetrySleepTime());
     }
 
+
     protected void sleep(int time) {
+        if (time==0) {
+            return;
+        }
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
